@@ -1,0 +1,100 @@
+@import './variables.css';
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@400;500;600&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif; /* Основной текст читабельный */
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Orbitron', sans-serif; /* Только заголовки в стиле Бен 10 */
+  color: var(--omnitrix-green);
+  letter-spacing: 0.5px;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Мягкие кнопки */
+.btn {
+  padding: 10px 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  background-color: transparent;
+  color: var(--text-color);
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn:hover {
+  border-color: var(--omnitrix-green);
+  color: var(--omnitrix-green);
+  background-color: rgba(16, 185, 129, 0.05);
+}
+
+.btn-primary {
+  background-color: var(--omnitrix-green);
+  color: #0f1115;
+  border-color: var(--omnitrix-green);
+  font-weight: 700;
+}
+
+.btn-primary:hover {
+  background-color: #059669;
+  border-color: #059669;
+  color: white;
+  box-shadow: 0 4px 12px var(--omnitrix-glow);
+}
+
+/* Мягкие поля ввода (без ярких зеленых рамок) */
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-color);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--omnitrix-green);
+  box-shadow: 0 0 0 3px var(--omnitrix-glow); /* Мягкое свечение вместо жесткой рамки */
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+a {
+  color: var(--omnitrix-green);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+a:hover {
+  opacity: 0.8;
+}

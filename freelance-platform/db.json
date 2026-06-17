@@ -1,0 +1,58 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "email": "admin@test.com",
+      "password": "123qwe",
+      "name": "Админ",
+      "role": "admin"
+    },
+    {
+      "id": "2",
+      "email": "customer@test.com",
+      "password": "123qwe",
+      "name": "Заказчик",
+      "role": "customer"
+    },
+    {
+      "id": "3",
+      "email": "freelancer@test.com",
+      "password": "123qwe",
+      "name": "Фрилансер1",
+      "role": "freelancer",
+      "avatarUrl": "/mocks/avatar_1781608109016_Безымянная Диаграмма-2026-01-22T14-18-11.png"
+    }
+  ],
+  "orders": [
+    {
+      "title": "Сделать сайтик на реакте",
+      "description": "Бесплатно пж",
+      "price": 14,
+      "status": "open",
+      "customerId": "2",
+      "fileUrl": "/mocks/1781607370676_ЛеоновЮО_243252_б1ИФСТз21.docx",
+      "createdAt": "2026-06-16T10:56:10.677Z",
+      "id": "gXt4Z5XfK_M"
+    }
+  ],
+  "responses": [
+    {
+      "orderId": "gXt4Z5XfK_M",
+      "freelancerId": "3",
+      "freelancerName": "Фрилансер1",
+      "message": "готово",
+      "createdAt": "2026-06-16T11:43:17.818Z",
+      "id": "bUrQECyiGgQ"
+    },
+    {
+      "orderId": "gXt4Z5XfK_M",
+      "freelancerId": "3",
+      "freelancerName": "Фрилансер1",
+      "message": "готово",
+      "fileUrl": "/mocks/response_1781610236786_001.pdf",
+      "createdAt": "2026-06-16T11:43:56.787Z",
+      "id": "eWlJrFzB8Sk"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}
