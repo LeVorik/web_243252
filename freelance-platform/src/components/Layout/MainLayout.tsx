@@ -20,7 +20,7 @@ export const MainLayout = () => {
       }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Link to="/" style={{ fontSize: '24px', fontWeight: 'bold', fontFamily: 'Orbitron, sans-serif' }}>
-            ⌚ OMNITRIX JOBS
+            ⌚ FREELANCE JOBS
           </Link>
           
           <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
