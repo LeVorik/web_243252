@@ -43,15 +43,6 @@
       "message": "готово",
       "createdAt": "2026-06-16T11:43:17.818Z",
       "id": "bUrQECyiGgQ"
-    },
-    {
-      "orderId": "gXt4Z5XfK_M",
-      "freelancerId": "3",
-      "freelancerName": "Фрилансер1",
-      "message": "готово",
-      "fileUrl": "/mocks/response_1781610236786_001.pdf",
-      "createdAt": "2026-06-16T11:43:56.787Z",
-      "id": "eWlJrFzB8Sk"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
