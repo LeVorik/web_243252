@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { usersService } from '../../services/usersService';
 import { ordersService } from '../../services/ordersService';
 import { authService } from '../../services/authService';
@@ -8,6 +9,7 @@ import type { Order } from '../../types/order';
 export const AdminPanel = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [pendingDelete, setPendingDelete] = useState<{ type: 'user' | 'order'; id: string | number } | null>(null);
 
   useEffect(() => {
     loadData();
@@ -20,15 +22,25 @@ export const AdminPanel = () => {
     setOrders(ordersData);
   };
 
-  const handleDeleteUser = async (id: number) => {
-    if (!confirm('Удалить пользователя?')) return;
+  const handleDeleteUser = async (id: string | number) => {
+    if (pendingDelete?.type !== 'user' || String(pendingDelete.id) !== String(id)) {
+      setPendingDelete({ type: 'user', id });
+      return;
+    }
+
     await authService.deleteUser(id);
+    setPendingDelete(null);
     loadData();
   };
 
-  const handleDeleteOrder = async (id: number) => {
-    if (!confirm('Удалить заказ?')) return;
+  const handleDeleteOrder = async (id: string | number) => {
+    if (pendingDelete?.type !== 'order' || String(pendingDelete.id) !== String(id)) {
+      setPendingDelete({ type: 'order', id });
+      return;
+    }
+
     await ordersService.deleteOrder(id);
+    setPendingDelete(null);
     loadData();
   };
 
@@ -36,14 +48,12 @@ export const AdminPanel = () => {
     width: '100%',
     borderCollapse: 'collapse',
     marginTop: '20px',
-    backgroundColor: 'white',
   };
 
   const thStyle: React.CSSProperties = {
     padding: '12px',
     textAlign: 'left',
     borderBottom: '2px solid var(--border-color)',
-    backgroundColor: '#f3f4f6',
   };
 
   const tdStyle: React.CSSProperties = {
@@ -53,7 +63,10 @@ export const AdminPanel = () => {
 
   return (
     <div className="container" style={{ marginTop: '30px' }}>
-      <h1>Админ-панель</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', alignItems: 'center' }}>
+        <h1>Админ-панель</h1>
+        <Link to="/" className="btn">На главную</Link>
+      </div>
 
       <section style={{ marginTop: '40px' }}>
         <h2>Пользователи ({users.length})</h2>
@@ -80,7 +93,7 @@ export const AdminPanel = () => {
                     onClick={() => handleDeleteUser(user.id)}
                     style={{ background: '#ef4444', color: 'white', padding: '6px 12px' }}
                   >
-                    Удалить
+                    {pendingDelete?.type === 'user' && String(pendingDelete.id) === String(user.id) ? 'Нажмите еще раз' : 'Удалить'}
                   </button>
                 </td>
               </tr>
@@ -114,7 +127,7 @@ export const AdminPanel = () => {
                     onClick={() => handleDeleteOrder(order.id)}
                     style={{ background: '#ef4444', color: 'white', padding: '6px 12px' }}
                   >
-                    Удалить
+                    {pendingDelete?.type === 'order' && String(pendingDelete.id) === String(order.id) ? 'Нажмите еще раз' : 'Удалить'}
                   </button>
                 </td>
               </tr>

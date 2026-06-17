@@ -1,20 +1,22 @@
 export interface Order {
-  id: number;
+  id: string | number;
   title: string;
   description: string;
   price: number;
   status: 'open' | 'in_progress' | 'completed';
-  customerId: number;
+  customerId: string | number;
   fileUrl?: string;
+  fileName?: string;
   createdAt: string;
 }
 
 export interface OrderResponse {
-  id: number;
-  orderId: number;
-  freelancerId: number;
+  id: string | number;
+  orderId: string | number;
+  freelancerId: string | number;
   freelancerName: string;
   message: string;
   fileUrl?: string;
+  fileName?: string;
   createdAt: string;
 }

@@ -12,11 +12,11 @@ export const authService = {
     return response.data;
   },
 
-  async deleteUser(id: number): Promise<void> {
+  async deleteUser(id: string | number): Promise<void> {
     await api.delete(`/users/${id}`);
   },
 
-  async updateUser(id: number, userData: Partial<User>): Promise<User> {
+  async updateUser(id: string | number, userData: Partial<User>): Promise<User> {
     const response = await api.patch<User>(`/users/${id}`, userData);
     return response.data;
   },

@@ -2,7 +2,7 @@ import { api } from './api';
 import type { OrderResponse } from '../types/order';
 
 export const responsesService = {
-  async getByOrder(orderId: number): Promise<OrderResponse[]> {
+  async getByOrder(orderId: string | number): Promise<OrderResponse[]> {
     const res = await api.get<OrderResponse[]>(`/responses?orderId=${orderId}`);
     return res.data;
   },

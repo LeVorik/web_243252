@@ -6,6 +6,20 @@ import { useAuthStore } from '../../store/authStore';
 import type { Order, OrderResponse } from '../../types/order';
 import { ordersService } from '../../services/ordersService';
 
+const readFileAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
+const getFileName = (fileUrl: string, fileName?: string) => {
+  if (fileName) return fileName;
+  if (fileUrl.startsWith('data:')) return 'вложение';
+  return fileUrl.split('/').pop() || 'вложение';
+};
+
 export const OrderDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -14,8 +28,11 @@ export const OrderDetails = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [responses, setResponses] = useState<OrderResponse[]>([]);
   const [message, setMessage] = useState('');
+  const [notice, setNotice] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [fileInputKey, setFileInputKey] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [statusLoading, setStatusLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -23,7 +40,7 @@ export const OrderDetails = () => {
       try {
         const [orderData, responsesData] = await Promise.all([
           api.get<Order>(`/orders/${id}`),
-          responsesService.getByOrder(Number(id))
+          responsesService.getByOrder(id)
         ]);
         setOrder(orderData.data);
         setResponses(responsesData);
@@ -42,9 +59,10 @@ export const OrderDetails = () => {
     setLoading(true);
     try {
       let fileUrl = '';
+      let fileName = '';
       if (file) {
-        fileUrl = `/mocks/response_${Date.now()}_${file.name}`;
-        console.log('Файл отклика загружен (мок):', fileUrl);
+        fileUrl = await readFileAsDataUrl(file);
+        fileName = file.name;
       }
 
       const newResponse = await responsesService.create({
@@ -53,6 +71,7 @@ export const OrderDetails = () => {
         freelancerName: user.name,
         message,
         fileUrl: fileUrl || undefined,
+        fileName: fileName || undefined,
       });
 
       // Мгновенно обновляем UI, добавляя новый отклик в массив
@@ -61,35 +80,52 @@ export const OrderDetails = () => {
       // Очищаем форму
       setMessage('');
       setFile(null);
-      
-      alert('Отклик успешно отправлен в систему Омнитрикс!');
+      setFileInputKey((prev) => prev + 1);
+      setNotice({ text: 'Отклик успешно отправлен.', type: 'success' });
     } catch (error) {
       console.error('Ошибка отправки отклика:', error);
-      alert('Сбой связи. Попробуйте позже.');
+      setNotice({ text: 'Не удалось отправить отклик. Попробуйте позже.', type: 'error' });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAcceptResponse = async (responseId: number, freelancerName: string) => {
+  const handleAcceptResponse = async (freelancerName: string) => {
     if (!order) return;
-    if (!confirm(`Принять исполнителя ${freelancerName} и начать работу? Статус заказа изменится.`)) return;
 
+    setStatusLoading(true);
     try {
-      // Меняем статус заказа на "в работе"
       const updatedOrder = await ordersService.updateOrderStatus(order.id, 'in_progress');
       setOrder(updatedOrder);
-      alert(`Исполнитель ${freelancerName} принят! Статус изменен на "В работе".`);
+      setNotice({ text: `Исполнитель ${freelancerName} принят. Статус заказа изменен на "В работе".`, type: 'success' });
     } catch (error) {
       console.error('Ошибка изменения статуса:', error);
-      alert('Не удалось изменить статус');
+      setNotice({ text: 'Не удалось изменить статус заказа.', type: 'error' });
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
+  const handleCloseOrder = async () => {
+    if (!order) return;
+
+    setStatusLoading(true);
+    try {
+      const updatedOrder = await ordersService.updateOrderStatus(order.id, 'completed');
+      setOrder(updatedOrder);
+      setNotice({ text: 'Заявка закрыта.', type: 'success' });
+    } catch (error) {
+      console.error('Ошибка закрытия заказа:', error);
+      setNotice({ text: 'Не удалось закрыть заявку.', type: 'error' });
+    } finally {
+      setStatusLoading(false);
     }
   };
 
   if (!order) return <div className="container" style={{ marginTop: '30px' }}>Загрузка...</div>;
 
   const isFreelancer = user?.role === 'freelancer';
-  const hasAlreadyApplied = responses.some(r => r.freelancerId === user?.id);
+  const isOrderOwner = user?.role === 'customer' && String(order.customerId) === String(user.id);
 
   return (
     <div className="container" style={{ maxWidth: '800px', marginTop: '30px' }}>
@@ -113,11 +149,44 @@ export const OrderDetails = () => {
         }}>
           {order.status === 'open' ? 'Открыт' : order.status === 'in_progress' ? 'В работе' : 'Завершен'}
         </span>
-        {order.fileUrl && <span>📎 В заказе есть файл ТЗ</span>}
+        {order.fileUrl && (
+          <a
+            href={order.fileUrl}
+            target="_blank"
+            rel="noreferrer"
+            download={getFileName(order.fileUrl, order.fileName)}
+            style={{ color: 'var(--omnitrix-green)', textDecoration: 'none' }}
+          >
+            📎 Открыть файл ТЗ: {getFileName(order.fileUrl, order.fileName)}
+          </a>
+        )}
       </div>
 
-      {/* Блок откликов (виден заказчику и админу) */}
-      {(user?.role === 'customer' || user?.role === 'admin') && (
+      {isOrderOwner && order.status !== 'completed' && (
+        <button
+          className="btn btn-primary"
+          onClick={handleCloseOrder}
+          disabled={statusLoading}
+          style={{ marginTop: '20px' }}
+        >
+          {statusLoading ? 'Закрытие...' : 'Закрыть заявку'}
+        </button>
+      )}
+
+      {notice && (
+        <p style={{
+          marginTop: '20px',
+          padding: '10px',
+          backgroundColor: notice.type === 'success' ? '#ecfdf5' : '#fef2f2',
+          color: notice.type === 'success' ? 'var(--success-color)' : 'var(--error-color)',
+          borderRadius: '6px'
+        }}>
+          {notice.text}
+        </p>
+      )}
+
+      {/* Блок откликов (виден заказчику заявки и админу) */}
+      {(isOrderOwner || user?.role === 'admin') && (
         <section style={{ marginTop: '40px' }}>
           <h3>Отклики ({responses.length})</h3>
           {responses.length === 0 ? <p style={{ color: 'var(--text-muted)' }}>Пока нет откликов</p> : (
@@ -132,21 +201,28 @@ export const OrderDetails = () => {
                       </p>
                     </div>
                     {/* Кнопка принятия видна только заказчику и только если заказ еще "open" */}
-                    {user?.role === 'customer' && order.status === 'open' && (
+                    {isOrderOwner && order.status === 'open' && (
                       <button 
                         className="btn btn-primary" 
-                        onClick={() => handleAcceptResponse(resp.id, resp.freelancerName)}
+                        onClick={() => handleAcceptResponse(resp.freelancerName)}
+                        disabled={statusLoading}
                         style={{ fontSize: '12px', padding: '6px 12px' }}
                       >
-                        ✓ Принять исполнителя
+                        {statusLoading ? 'Сохранение...' : '✓ Принять исполнителя'}
                       </button>
                     )}
                   </div>
                   <p style={{ margin: '12px 0', lineHeight: 1.5 }}>{resp.message}</p>
                   {resp.fileUrl && (
-                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      📎 Прикреплён файл: {resp.fileUrl.split('/').pop()}
-                    </p>
+                    <a
+                      href={resp.fileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      download={getFileName(resp.fileUrl, resp.fileName)}
+                      style={{ fontSize: '13px', color: 'var(--omnitrix-green)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      📎 Открыть файл отклика: {getFileName(resp.fileUrl, resp.fileName)}
+                    </a>
                   )}
                 </div>
               ))}
@@ -156,8 +232,8 @@ export const OrderDetails = () => {
       )}
 
       {/* Форма отклика (только для фрилансера) */}
-      {isFreelancer && !hasAlreadyApplied && (
-        <section style={{ marginTop: '40px', padding: '20px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px dashed var(--border-color)' }}>
+      {isFreelancer && (
+        <section style={{ marginTop: '40px', padding: '20px', borderRadius: '8px', border: '1px dashed var(--border-color)' }}>
           <h3>Оставить отклик</h3>
           <form onSubmit={handleApply} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
             <textarea
@@ -169,6 +245,7 @@ export const OrderDetails = () => {
               required
             />
             <input
+              key={fileInputKey}
               className="input"
               type="file"
               onChange={(e) => e.target.files && setFile(e.target.files[0])}
@@ -181,12 +258,6 @@ export const OrderDetails = () => {
             </button>
           </form>
         </section>
-      )}
-
-      {isFreelancer && hasAlreadyApplied && (
-        <p style={{ marginTop: '30px', padding: '10px', backgroundColor: '#fef3c7', borderRadius: '6px' }}>
-          ✅ Вы уже оставили отклик на этот заказ.
-        </p>
       )}
     </div>
   );

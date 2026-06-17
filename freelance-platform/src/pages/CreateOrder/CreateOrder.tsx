@@ -4,11 +4,20 @@ import { useAuthStore } from '../../store/authStore';
 import { useOrdersStore } from '../../store/ordersStore';
 import { ordersService } from '../../services/ordersService';
 
+const readFileAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
 export const CreateOrder = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
   const navigate = useNavigate();
@@ -26,15 +35,14 @@ export const CreateOrder = () => {
     if (!user) return;
 
     setLoading(true);
+    setError('');
     try {
       let fileUrl = '';
+      let fileName = '';
       
-      // Моковая загрузка файла
       if (file) {
-        // В реальном проекте здесь была бы загрузка на сервер
-        // Для мока просто создаём путь к файлу
-        fileUrl = `/mocks/${Date.now()}_${file.name}`;
-        console.log('Файл загружен (мок):', fileUrl);
+        fileUrl = await readFileAsDataUrl(file);
+        fileName = file.name;
       }
 
       const newOrder = await ordersService.createOrder({
@@ -44,13 +52,14 @@ export const CreateOrder = () => {
         status: 'open',
         customerId: user.id,
         fileUrl: fileUrl || undefined,
+        fileName: fileName || undefined,
       });
 
       addOrder(newOrder);
       navigate('/');
     } catch (error) {
       console.error('Ошибка создания заказа:', error);
-      alert('Ошибка при создании заказа');
+      setError('Ошибка при создании заказа. Попробуйте позже.');
     } finally {
       setLoading(false);
     }
@@ -111,6 +120,11 @@ export const CreateOrder = () => {
         <button className="btn btn-primary" type="submit" disabled={loading}>
           {loading ? 'Создание...' : 'Создать заказ'}
         </button>
+        {error && (
+          <p style={{ padding: '10px', backgroundColor: '#fef2f2', color: 'var(--error-color)', borderRadius: '6px' }}>
+            {error}
+          </p>
+        )}
       </form>
     </div>
   );

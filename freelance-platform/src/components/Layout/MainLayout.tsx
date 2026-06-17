@@ -20,7 +20,7 @@ export const MainLayout = () => {
       }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Link to="/" style={{ fontSize: '24px', fontWeight: 'bold', fontFamily: 'Orbitron, sans-serif' }}>
-            ⌚ FREELANCE JOBS
+            ⌚ FREELANCE TIME
           </Link>
           
           <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
@@ -35,7 +35,6 @@ export const MainLayout = () => {
                 <button className="btn" onClick={handleLogout} style={{ borderColor: 'var(--error-color)', color: 'var(--error-color)' }}>
                   Выход
                 </button>
-                <button className="btn" onClick={() => navigate(-1)}>← Назад</button>
               </>
             ) : (
               <>
@@ -52,7 +51,7 @@ export const MainLayout = () => {
       </main>
 
       <footer style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '12px', borderTop: '1px solid #333', marginTop: '40px' }}>
-        © 2026 Omnitrix Jobs. It's Hero Time.
+        © 2026 Freelance Time
       </footer>
     </div>
   );

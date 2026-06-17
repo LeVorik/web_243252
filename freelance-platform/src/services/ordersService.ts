@@ -15,10 +15,10 @@ export const ordersService = {
     return response.data;
   },
 
-  async deleteOrder(id: number): Promise<void> {
+  async deleteOrder(id: string | number): Promise<void> {
     await api.delete(`/orders/${id}`);
   },
-  async updateOrderStatus(id: number, status: 'open' | 'in_progress' | 'completed'): Promise<Order> {
+  async updateOrderStatus(id: string | number, status: 'open' | 'in_progress' | 'completed'): Promise<Order> {
     const response = await api.patch<Order>(`/orders/${id}`, { status });
     return response.data;
   },

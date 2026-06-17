@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { authService } from '../../services/authService';
 
@@ -6,6 +7,7 @@ export const Profile = () => {
   const { user, login } = useAuthStore();
   const [name, setName] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [notice, setNotice] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Заполняем форму текущими данными при загрузке
@@ -26,6 +28,7 @@ export const Profile = () => {
     if (!user) return;
 
     setLoading(true);
+    setNotice(null);
     try {
       let avatarUrl = user.avatarUrl;
 
@@ -45,11 +48,10 @@ export const Profile = () => {
 
       // Обновляем пользователя в глобальном сторе, чтобы изменения отобразились в шапке
       login(updatedUser);
-      
-      alert('Профиль успешно обновлен!');
+      setNotice({ text: 'Профиль успешно обновлен.', type: 'success' });
     } catch (error) {
       console.error('Ошибка обновления профиля:', error);
-      alert('Ошибка при обновлении профиля');
+      setNotice({ text: 'Ошибка при обновлении профиля. Попробуйте позже.', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -59,9 +61,12 @@ export const Profile = () => {
 
   return (
     <div className="container" style={{ maxWidth: '600px', marginTop: '30px' }}>
-      <h2>Мой профиль</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', alignItems: 'center' }}>
+        <h2>Мой профиль</h2>
+        <Link to="/" className="btn">На главную</Link>
+      </div>
       
-      <div style={{ marginTop: '20px', padding: '20px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+      <div style={{ marginTop: '20px', padding: '20px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
         <p><strong>Роль:</strong> {user.role === 'admin' ? 'Администратор' : user.role === 'customer' ? 'Заказчик' : 'Фрилансер'}</p>
         <p><strong>Email:</strong> {user.email}</p>
         {user.avatarUrl && (
@@ -98,6 +103,16 @@ export const Profile = () => {
         <button className="btn btn-primary" type="submit" disabled={loading} style={{ alignSelf: 'flex-start' }}>
           {loading ? 'Сохранение...' : 'Сохранить изменения'}
         </button>
+        {notice && (
+          <p style={{
+            padding: '10px',
+            backgroundColor: notice.type === 'success' ? '#ecfdf5' : '#fef2f2',
+            color: notice.type === 'success' ? 'var(--success-color)' : 'var(--error-color)',
+            borderRadius: '6px'
+          }}>
+            {notice.text}
+          </p>
+        )}
       </form>
     </div>
   );
