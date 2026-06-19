@@ -14,7 +14,7 @@ export const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
   }
 
   if (allowedRoles && !hasRole(allowedRoles)) {
-    return <Navigate to="/" replace />; // Если роль не подходит, кидаем на главную
+    return <Navigate to="/" replace />;
   }
 
   return <Outlet />;
